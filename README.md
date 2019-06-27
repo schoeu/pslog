@@ -1,9 +1,10 @@
 # pslog
 
 ## 日志格式
-日志格式字段
+日志格式字段介绍
+
 |占位符|含义|
-|--|--|--|
+|--|--|
 |$logical_cores|逻辑核数|
 |$physical_cores|物理核数|
 |$percent_percpu|单cpu使用率|
