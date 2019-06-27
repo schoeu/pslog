@@ -1,6 +1,6 @@
 {
     "name": "test_server",
-    "interval": 1000,
+    "interval": 2000,
     "format": "$cpu $disk $mem $net",
-    "logPath": "/a/b/c"
+    "logPath": "/Users/liuquanyou/Downloads/git/topinfo/test1234.txt"
 }

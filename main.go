@@ -33,9 +33,8 @@ func main() {
 		data, err := ioutil.ReadFile(filePath)
 		err = json.Unmarshal(data, &c)
 		errHandler(err)
-		fmt.Println(c)
 		configLogPath := c.LogPath
-		if configLogPath == "" {
+		if configLogPath != "" {
 			logPath = configLogPath
 		}
 	} else {
@@ -43,9 +42,18 @@ func main() {
 		logPath = path.Join(cwd, "psinfo_logs")
 		fmt.Println("log file created at ", logPath)
 	}
+
+	makeDirP(logPath)
+	logContent := getPsInfo()
+
+	during := c.Interval
+	if during == 0 {
+		during = 5000
+	}
+	timer(during, logPath, logContent + "\n")
 }
 
-func getPsInfo() {
+func getPsInfo() string {
 	v, _ := mem.VirtualMemory()
     c, _ := cpu.Info()
 	// d, _ := disk.Usage("/")
@@ -74,13 +82,29 @@ func getPsInfo() {
 		device := v.Mountpoint
 		distDetial, _ := disk.Usage(device)
 		if distDetial != nil {
-			fmt.Printf("   %v     HD        : %v MB  Free: %v MB Usage:%f%%\n",v.Device, distDetial.Total/1024/1024, distDetial.Free/1024/1024, distDetial.UsedPercent)
+			rs, _ := fmt.Printf("   %v     HD        : %v MB  Free: %v MB Usage:%f%%\n",v.Device, distDetial.Total/1024/1024, distDetial.Free/1024/1024, distDetial.UsedPercent)
+			fmt.Println("~~~~", rs)
 		}
 	}
 
+	// 逻辑核            logical cores
+	// 物理核            physical cores
+	// 单cpu使用率        percent percpu
+	// cpu综合使用率      cpu percent
+	// cpu型号           cpu model name
+	// 总内存 			 mem total
+	// 已使用内容 		  mem used
+	// 内存使用率 		  mem used percent
+	// 网卡上行速率       bytes recv
+	// 网卡下行速率       bytes sent
+	// 磁盘总空间         disk totle
+	// 磁盘已使用空间     disk used
+	// 磁盘使用占比       disk used percent
+
+
+
 	fmt.Println(nv)
 	// fmt.Println(disk.Partitions(true))
-
     // fmt.Printf("        Network: %v bytes / %v bytes\n", nv[0].BytesRecv, nv[0].BytesSent)
     // fmt.Printf("        SystemBoot:%v\n", btime)
     // fmt.Printf("        CPU Used    : used %f%% \n", cc[0])
@@ -88,6 +112,8 @@ func getPsInfo() {
     // fmt.Printf("        OS        : %v(%v)   %v  \n", n.Platform, n.PlatformFamily, n.PlatformVersion)
 	// fmt.Printf("        Hostname  : %v  \n", n)
 	// fmt.Println(c)
+
+	return `"$remote" "$cpu"`
 }
 
 func errHandler(err error) {
@@ -104,7 +130,7 @@ func getCwd() string {
 	return dir
 }
 
-func MakeDirP(p string) {
+func makeDirP(p string) {
 	if !path.IsAbs(p) {
 		dir, err := os.Getwd()
 		errHandler(err)
@@ -112,4 +138,25 @@ func MakeDirP(p string) {
 	}
 	rs := path.Dir(p)
 	os.MkdirAll(rs, os.ModePerm)
+}
+
+func appendText(p string, content string) {
+	file, err := os.OpenFile(p, os.O_CREATE | os.O_APPEND | os.O_RDWR, 0600)
+	errHandler(err)
+	defer file.Close()
+
+	if _, err = file.WriteString(content); err != nil {
+		panic(err)
+	}
+}
+
+func timer(interval int, p, content string) {
+	during := interval / 1000
+	d := time.Duration(time.Second * time.Duration(during))
+	t := time.NewTicker(d)
+	defer t.Stop()
+	for {
+		<- t.C
+		appendText(p, content)
+	}
 }
