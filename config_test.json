@@ -1,0 +1,6 @@
+{
+    "name": "test_server",
+    "interval": 1000,
+    "format": "$cpu $disk $mem $net",
+    "logPath": "/a/b/c"
+}
