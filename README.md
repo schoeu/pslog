@@ -27,7 +27,7 @@ nohup ./pslog_mac &
 ``` json
 {
     "interval": 60000,
-    "logFormat": "$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotle|$diskUsed|$diskUsedPercent",
+    "logFormat": "$dateTime|$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotle|$diskUsed|$diskUsedPercent",
     "logPath": "./psinfo_logs"
 }
 ```
@@ -43,6 +43,7 @@ nohup ./pslog_mac &
 
 |占位符|含义|
 |--|--|
+|$dateTime|日期时间戳|
 |$logicalCores|逻辑核数|
 |$physicalCores|物理核数|
 |$percentPerCpu|单cpu使用率|
@@ -78,4 +79,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-

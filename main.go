@@ -18,16 +18,19 @@ import (
 )
 
 type config struct {
-    Name string
     Interval int
     LogFormat string
     LogPath string
 }
 
 var (
-    logFormatDefault = "$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotle|$diskUsed|$diskUsedPercent"
+    logFormatDefault = "$dateTime|$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotle|$diskUsed|$diskUsedPercent"
     fmtLog = logFormatDefault
-    kbNum = uint64(1024 * 1024)
+    mbNum = uint64(1024 * 1024)
+    timeFormat = "2006-01-02T15:04:05"
+    during = 1000
+    recv float32
+    sent float32
 )
 
 func main() {
@@ -58,13 +61,14 @@ func main() {
     makeDirP(logPath)
     normalInfo()
 
-    during := c.Interval
-    if during == 0 {
-        during = 5000
+    if c.Interval != 0 {
+        during = c.Interval
     }
+
     timer(during, logPath)
 }
 
+// |$dateTime|日期时间戳|
 // |$logical_cores|逻辑核数|
 // |$physical_cores|物理核数|
 // |$percent_percpu|单cpu使用率|
@@ -84,21 +88,19 @@ func normalInfo() {
     c, _ := cpu.Info()
     logicalCount, _ := cpu.Counts(true)
     physicalCount, _ := cpu.Counts(false)
-    // d, _ := disk.Usage("/")
-    nv, _ := net.IOCounters(false)
-    fmt.Println(nv)
+
     var cpuModel []string
     for _, sub_cpu := range c {
         cpuModel = append(cpuModel, fmt.Sprintf(`"%s"`, sub_cpu.ModelName))
     }
 
-    fmtLog = strings.Replace(fmtLog, "$memTotal", fmt.Sprintf("%dMB", v.Total/kbNum), -1)
+    fmtLog = strings.Replace(fmtLog, "$memTotal", fmt.Sprintf("%dMB", v.Total/mbNum), -1)
     fmtLog = strings.Replace(fmtLog, "$logicalCores", strconv.Itoa(logicalCount), -1)
     fmtLog = strings.Replace(fmtLog, "$physicalCores", strconv.Itoa(physicalCount), -1)
     fmtLog = strings.Replace(fmtLog, "$cpuModel", fmt.Sprintf(`%s`, strings.Join(cpuModel, ",")), -1)
 }
 
-func getPsInfo() string {
+func getPsInfo(interval int) string {
     v, _ := mem.VirtualMemory()
     percentPerCpu, _ := cpu.Percent(time.Second, true)
     cpuPercent, _ := cpu.Percent(time.Second, false)
@@ -113,16 +115,39 @@ func getPsInfo() string {
         }
     }
     
+    nw, _ := net.IOCounters(false)
+    parseNum := float32(uint64(interval) / 1000)
+    var recvRate, sentRate float32
+    if len(nw) > 0 && nw[0].Name == "all" {
+        br := float32(nw[0].BytesRecv)
+        bs := float32(nw[0].BytesSent)
+        recvRate = (br - recv) / 1024 / parseNum
+        sentRate = (bs - sent) / 1024 / parseNum
+
+        // 初次获取上下行信息，矫正数据
+        if recv == 0 || sent == 0 {
+            recvRate = 0
+            sentRate = 0
+        }
+
+        recv = br
+        sent = bs
+    }
+    // recvRate := nw.BytesRecv / mbNum / interval / 1000
+    // nw.BytesSent
+
     diskUsedPercent := float32(diskUsed) / float32(diskTotal)
-    tmpLog := strings.Replace(fmtLog, "$diskTotle", fmt.Sprintf("%dGB", diskTotal / kbNum / 1024 ), -1)
+    tmpLog := strings.Replace(fmtLog, "$diskTotle", fmt.Sprintf("%dGB", diskTotal / mbNum / 1024 ), -1)
     tmpLog = strings.Replace(tmpLog, "$diskUsedPercent", fmt.Sprintf("%.2f", diskUsedPercent), -1)
-    tmpLog = strings.Replace(tmpLog, "$diskUsed", fmt.Sprintf("%dGB", diskUsed / kbNum / 1024), -1)
+    tmpLog = strings.Replace(tmpLog, "$diskUsed", fmt.Sprintf("%dGB", diskUsed / mbNum / 1024), -1)
     tmpLog = strings.Replace(tmpLog, "$memUsedPercent", fmt.Sprintf("%.2f", v.UsedPercent), -1)
-    tmpLog = strings.Replace(tmpLog, "$memUsed", fmt.Sprintf("%.2fMB", float32(v.Used)/float32(kbNum)), -1)
+    tmpLog = strings.Replace(tmpLog, "$memUsed", fmt.Sprintf("%.2fMB", float32(v.Used)/float32(mbNum)), -1)
     tmpLog = strings.Replace(tmpLog, "$percentPerCpu", fmt.Sprintf("%.2f", percentPerCpu), -1)
     tmpLog = strings.Replace(tmpLog, "$cpuPercent", fmt.Sprintf("%.2f", cpuPercent[0]), -1)
-    tmpLog = strings.Replace(tmpLog, "$bytesRecv", "", -1)
-    tmpLog = strings.Replace(tmpLog, "$bytesSent", "", -1)
+    tmpLog = strings.Replace(tmpLog, "$bytesRecv", fmt.Sprintf("%.2fKB/s", recvRate), -1)
+    tmpLog = strings.Replace(tmpLog, "$bytesSent", fmt.Sprintf("%.2fKB/s", sentRate), -1)
+    tmpLog = strings.Replace(tmpLog, "$dateTime", time.Now().Format(timeFormat), -1)
+    
 
     return tmpLog + "\n"
 }
@@ -160,14 +185,13 @@ func appendText(p string, content string) {
 }
 
 func timer(interval int, p string) {
-    during := interval / 1000
-    d := time.Duration(time.Second * time.Duration(during))
+    d := time.Duration(time.Millisecond * time.Duration(interval))
     t := time.NewTicker(d)
     defer t.Stop()
 
     for {
         <- t.C
-        content := getPsInfo()
+        content := getPsInfo(interval)
         appendText(p, content)
     }
 }
