@@ -1,5 +1,5 @@
 {
-    "interval": 5000,
-    "logFormat": "$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotle|$diskUsed|$diskUsedPercent",
+    "interval": 2000,
+    "logFormat": "$cpuPercent ~~~ $memUsedPercent",
     "logPath": "./test_logs.txt"
 }

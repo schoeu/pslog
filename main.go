@@ -54,8 +54,8 @@ func main() {
     }
 
     logFormat := c.LogFormat
-    if logFormat == "" {
-        logFormat = logFormatDefault
+    if logFormat != "" {
+        fmtLog = logFormat
     }
 
     makeDirP(logPath)

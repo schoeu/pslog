@@ -17,10 +17,15 @@
 - [windows 64位版本](https://github.com/schoeu/pslog/raw/master/pslog_64.exe)
 
 ### 2. 开箱即用
-mac为例
+以mac为例
 ```
 chmod +x ./pslog_mac
 nohup ./pslog_mac &
+```
+
+如果指定配置文件：
+```
+./pslog_mac --path ./path_to_your_config_file
 ```
 
 其他系统均有对应方法。
@@ -39,27 +44,29 @@ nohup ./pslog_mac &
 
 - `interval`为输出日志间隔，非必须，默认值为`60000`（60秒）
 - `logPath`为日志输出路径，非必须，默认值为`./psinfo_logs`，则会自动生成对应目录及文件，并写入日志
-- `logFormat`为输出的日志格式，非必须，默认值为`"$dateTime|$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotle|$diskUsed|$diskUsedPercent"`，可自定义。比如只需要内存使用率，cpu使用率，磁盘使用率并以`^`间隔的，则该格式字符串为`$cpuPercent^$memUsedPercent^$diskUsedPercent`，日志中单行内容为`16.69^74.65^34.20`，代表cpu，内存，磁盘使用率分别为`16.69%`，`74.65%`，`34.20%`。
+- `logFormat`为输出的日志格式，非必须，默认值为`"$dateTime|$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotle|$diskUsed|$diskUsedPercent"`。
+
+用户可以使用其中任意字段自行拼接。比如需要内存使用率，cpu使用率，且想以`^`间隔，则该格式字符串为`$cpuPercent^$memUsedPercent`，生效后，日志中单行内容为`16.69^74.65`，代表cpu，内存使用率分别为`16.69%`，`74.65%`。
 
 
-支持以下字段
+暂时支持以下字段
 
-|占位符|含义|
-|--|--|
-|$dateTime|日期时间戳|
-|$logicalCores|逻辑核数|
-|$physicalCores|物理核数|
-|$percentPerCpu|单cpu使用率|
-|$cpuPercent|cpu综合使用率|
-|$cpuModel|cpu型号|
-|$memTotal|总内存|
-|$memUsed|已使用内存|
-|$memUsedPercent|内存使用率|
-|$bytesRecv|网卡下行速率|
-|$bytesSent|网卡上行速率|
-|$diskTotle|磁盘总空间|
-|$diskUsed|磁盘已使用空间|
-|$diskUsedPercent|磁盘使用占比|
+|占位符|含义|示例|备注|
+|--|--|--|--|
+|$dateTime|日期时间戳|2019-06-28T17:37:11|当前时间戳|
+|$logicalCores|逻辑核数|8||
+|$physicalCores|物理核数|4||
+|$percentPerCpu|单cpu使用率|[33.66 3.00 30.00 3.96 30.00 3.96 27.72 3.96]|展现每一个逻辑核的使用率|
+|$cpuPercent|cpu综合使用率|6.64|使用率为6.64%|
+|$cpuModel|cpu型号|"Intel(R) Core(TM) i7-4750HQ CPU @ 2.00GHz"|多类核会以`,`隔开|
+|$memTotal|总内存|8192MB|8GB，此处以MB来展现|
+|$memUsed|已使用内存|5516.53MB|已使用了5516.53MB|
+|$memUsedPercent|内存使用率|67.34|已使用占比67.34%|
+|$bytesRecv|网卡下行速率|4.00KB/s|下行速率|
+|$bytesSent|网卡上行速率|1.50KB/s|上行速率|
+|$diskTotle|磁盘总空间|467GB|磁盘总计467G，不包括隐藏分区|
+|$diskUsed|磁盘已使用空间|159GB|已使用159GB|
+|$diskUsedPercent|磁盘使用占比|34.20|磁盘使用了34.20%|
 
 ## MIT License
 
