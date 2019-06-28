@@ -17,10 +17,13 @@
 - [windows 64位版本](https://github.com/schoeu/pslog/raw/master/pslog_64.exe)
 
 ### 2. 开箱即用
-以mac为例
+mac为例
 ```
+chmod +x ./pslog_mac
 nohup ./pslog_mac &
 ```
+
+其他系统均有对应方法。
 
 ## 配置
 配置文件可以自定义输出的日志格式，日志路径，输出时间间隔。配置非必须。
