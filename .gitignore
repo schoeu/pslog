@@ -16,6 +16,6 @@
 .DS_Store
 __*
 
-*log*
+*_log*
 test*
 topinfo*
