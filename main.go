@@ -27,7 +27,7 @@ type config struct {
 var (
     logFormatDefault = "$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotle|$diskUsed|$diskUsedPercent"
     fmtLog = logFormatDefault
-    kbNum = uint64(1024)
+    kbNum = uint64(1024 * 1024)
 )
 
 func main() {
@@ -36,7 +36,6 @@ func main() {
     flag.Parse()
 
     c := config{}
-    logFormat := ""
     if filePath != "" {
         data, err := ioutil.ReadFile(filePath)
         err = json.Unmarshal(data, &c)
@@ -51,7 +50,7 @@ func main() {
         fmt.Println("Log file created at: ", logPath)
     }
 
-    logFormat = c.LogFormat
+    logFormat := c.LogFormat
     if logFormat == "" {
         logFormat = logFormatDefault
     }
@@ -66,6 +65,20 @@ func main() {
     timer(during, logPath)
 }
 
+// |$logical_cores|逻辑核数|
+// |$physical_cores|物理核数|
+// |$percent_percpu|单cpu使用率|
+// |$cpu_percent|cpu综合使用率|
+// |$cpu_model_name|cpu型号|
+// |$mem_total|总内存|
+// |$mem_used|已使用内存|
+// |$mem_used_percent|内存使用率|
+// |$bytes_recv|网卡下行速率|
+// |$bytes_sent|网卡上行速率|
+// |$disk_totle|磁盘总空间|
+// |$disk_used|磁盘已使用空间|
+// |$disk_used_percent|磁盘使用占比|
+
 func normalInfo() {
     v, _ := mem.VirtualMemory()
     c, _ := cpu.Info()
@@ -76,14 +89,13 @@ func normalInfo() {
     fmt.Println(nv)
     var cpuModel []string
     for _, sub_cpu := range c {
-        modelname := sub_cpu.ModelName
-        cpuModel = append(cpuModel, modelname)
+        cpuModel = append(cpuModel, fmt.Sprintf(`"%s"`, sub_cpu.ModelName))
     }
 
-    fmtLog = strings.Replace(fmtLog, "$memTotal", fmt.Sprintf("%dKB", v.Total/kbNum), -1)
+    fmtLog = strings.Replace(fmtLog, "$memTotal", fmt.Sprintf("%dMB", v.Total/kbNum), -1)
     fmtLog = strings.Replace(fmtLog, "$logicalCores", strconv.Itoa(logicalCount), -1)
     fmtLog = strings.Replace(fmtLog, "$physicalCores", strconv.Itoa(physicalCount), -1)
-    fmtLog = strings.Replace(fmtLog, "$cpuModel", fmt.Sprintf("%s", cpuModel), -1)
+    fmtLog = strings.Replace(fmtLog, "$cpuModel", fmt.Sprintf(`%s`, strings.Join(cpuModel, ",")), -1)
 }
 
 func getPsInfo() string {
@@ -101,31 +113,14 @@ func getPsInfo() string {
         }
     }
     
-    diskUsedPercent := float64(diskUsed) / float64(diskTotal)
-
-    
-
-    // |$logical_cores|逻辑核数|
-    // |$physical_cores|物理核数|
-    // |$percent_percpu|单cpu使用率|
-    // |$cpu_percent|cpu综合使用率|
-    // |$cpu_model_name|cpu型号|
-    // |$mem_total|总内存|
-    // |$mem_used|已使用内存|
-    // |$mem_used_percent|内存使用率|
-    // |$bytes_recv|网卡下行速率|
-    // |$bytes_sent|网卡上行速率|
-    // |$disk_totle|磁盘总空间|
-    // |$disk_used|磁盘已使用空间|
-    // |$disk_used_percent|磁盘使用占比|
-
-    tmpLog := strings.Replace(fmtLog, "$diskTotle", fmt.Sprintf("%.2d GB", diskTotal / uint64(kbNum) / uint64(kbNum) / uint64(kbNum) ), -1)
+    diskUsedPercent := float32(diskUsed) / float32(diskTotal)
+    tmpLog := strings.Replace(fmtLog, "$diskTotle", fmt.Sprintf("%dGB", diskTotal / kbNum / 1024 ), -1)
     tmpLog = strings.Replace(tmpLog, "$diskUsedPercent", fmt.Sprintf("%.2f", diskUsedPercent), -1)
-    tmpLog = strings.Replace(tmpLog, "$diskUsed", fmt.Sprintf("%.2d GB", diskUsed / uint64(kbNum) / uint64(kbNum) / uint64(kbNum)), -1)
+    tmpLog = strings.Replace(tmpLog, "$diskUsed", fmt.Sprintf("%dGB", diskUsed / kbNum / 1024), -1)
     tmpLog = strings.Replace(tmpLog, "$memUsedPercent", fmt.Sprintf("%.2f", v.UsedPercent), -1)
-    tmpLog = strings.Replace(tmpLog, "$memUsed", fmt.Sprintf("%dKB", v.Used/kbNum), -1)
+    tmpLog = strings.Replace(tmpLog, "$memUsed", fmt.Sprintf("%.2fMB", float32(v.Used)/float32(kbNum)), -1)
     tmpLog = strings.Replace(tmpLog, "$percentPerCpu", fmt.Sprintf("%.2f", percentPerCpu), -1)
-    tmpLog = strings.Replace(tmpLog, "$cpuPercent", fmt.Sprintf("%.2f", cpuPercent), -1)
+    tmpLog = strings.Replace(tmpLog, "$cpuPercent", fmt.Sprintf("%.2f", cpuPercent[0]), -1)
     tmpLog = strings.Replace(tmpLog, "$bytesRecv", "", -1)
     tmpLog = strings.Replace(tmpLog, "$bytesSent", "", -1)
 
@@ -148,9 +143,8 @@ func getCwd() string {
 
 func makeDirP(p string) {
     if !path.IsAbs(p) {
-        dir, err := os.Getwd()
-        errHandler(err)
-        p = path.Join(dir, p)
+        cwd := getCwd()
+        p = path.Join(cwd, p)
     }
     rs := path.Dir(p)
     os.MkdirAll(rs, os.ModePerm)
@@ -161,9 +155,8 @@ func appendText(p string, content string) {
     errHandler(err)
     defer file.Close()
 
-    if _, err = file.WriteString(content); err != nil {
-        panic(err)
-    }
+    _, err = file.WriteString(content)
+    errHandler(err)
 }
 
 func timer(interval int, p string) {
@@ -172,10 +165,9 @@ func timer(interval int, p string) {
     t := time.NewTicker(d)
     defer t.Stop()
 
-    content := getPsInfo()
-
     for {
         <- t.C
+        content := getPsInfo()
         appendText(p, content)
     }
 }
