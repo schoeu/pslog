@@ -1,5 +1,4 @@
 {
-    "name": "test_server",
     "interval": 5000,
     "logFormat": "$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotle|$diskUsed|$diskUsedPercent",
     "logPath": "./test_logs.txt"
