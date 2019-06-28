@@ -12,7 +12,7 @@
 
 - [mac版本](https://github.com/schoeu/psloger/raw/master/pslog_mac)
 - [linux 32位版本](https://github.com/schoeu/pslog/raw/master/pslog_linux32)
-- [linux 62位版本](https://github.com/schoeu/pslog/raw/master/pslog_linux64)
+- [linux 64位版本](https://github.com/schoeu/pslog/raw/master/pslog_linux64)
 - [windows 32位版本](https://github.com/schoeu/pslog/raw/master/pslog_32.exe)
 - [windows 64位版本](https://github.com/schoeu/pslog/raw/master/pslog_64.exe)
 
