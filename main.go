@@ -28,7 +28,7 @@ var (
     fmtLog = logFormatDefault
     mbNum = uint64(1024 * 1024)
     timeFormat = "2006-01-02T15:04:05"
-    during = 60000
+    during = 1000
     recv float32
     sent float32
 )
@@ -138,7 +138,7 @@ func getPsInfo(interval int) string {
 
     diskUsedPercent := float32(diskUsed) / float32(diskTotal)
     tmpLog := strings.Replace(fmtLog, "$diskTotle", fmt.Sprintf("%dGB", diskTotal / mbNum / 1024 ), -1)
-    tmpLog = strings.Replace(tmpLog, "$diskUsedPercent", fmt.Sprintf("%.2f", diskUsedPercent), -1)
+    tmpLog = strings.Replace(tmpLog, "$diskUsedPercent", fmt.Sprintf("%.2f", diskUsedPercent * 100), -1)
     tmpLog = strings.Replace(tmpLog, "$diskUsed", fmt.Sprintf("%dGB", diskUsed / mbNum / 1024), -1)
     tmpLog = strings.Replace(tmpLog, "$memUsedPercent", fmt.Sprintf("%.2f", v.UsedPercent), -1)
     tmpLog = strings.Replace(tmpLog, "$memUsed", fmt.Sprintf("%.2fMB", float32(v.Used)/float32(mbNum)), -1)
