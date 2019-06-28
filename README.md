@@ -5,19 +5,19 @@
 
 |占位符|含义|
 |--|--|
-|$logical_cores|逻辑核数|
-|$physical_cores|物理核数|
-|$percent_percpu|单cpu使用率|
-|$cpu_percent|cpu综合使用率|
-|$cpu_model_name|cpu型号|
-|$mem_total|总内存|
-|$mem_used|已使用内存|
-|$mem_used_percent|内存使用率|
-|$bytes_recv|网卡下行速率|
-|$bytes_sent|网卡上行速率|
-|$disk_totle|磁盘总空间|
-|$disk_used|磁盘已使用空间|
-|$disk_used_percent|磁盘使用占比|
+|$logicalCores|逻辑核数|
+|$physicalCores|物理核数|
+|$percentPerCpu|单cpu使用率|
+|$cpuPercent|cpu综合使用率|
+|$cpuModel|cpu型号|
+|$memTotal|总内存|
+|$memUsed|已使用内存|
+|$memUsedPercent|内存使用率|
+|$bytesRecv|网卡下行速率|
+|$bytesSent|网卡上行速率|
+|$diskTotle|磁盘总空间|
+|$diskUsed|磁盘已使用空间|
+|$diskUsedPercent|磁盘使用占比|
 
 ## MIT License
 

@@ -8,10 +8,11 @@ import (
 	"time"
 	"os"
 	"path"
+	"strings"
+	"strconv"
 
     "github.com/shirou/gopsutil/cpu"
     "github.com/shirou/gopsutil/disk"
-    // "github.com/shirou/gopsutil/host"
     "github.com/shirou/gopsutil/mem"
     "github.com/shirou/gopsutil/net"
 )
@@ -19,7 +20,7 @@ import (
 type config struct {
 	Name string
 	Interval int
-	Format string
+	LogFormat string
 	LogPath string
 }
 
@@ -29,6 +30,7 @@ func main() {
 	flag.Parse()
 
 	c := config{}
+	logFormat := ""
 	if filePath != "" {
 		data, err := ioutil.ReadFile(filePath)
 		err = json.Unmarshal(data, &c)
@@ -40,80 +42,84 @@ func main() {
 	} else {
 		cwd := getCwd()
 		logPath = path.Join(cwd, "psinfo_logs")
-		fmt.Println("log file created at ", logPath)
+		fmt.Println("Log file created at: ", logPath)
+	}
+
+	logFormatDefault := "$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotle|$diskUsed|$diskUsedPercent"
+	logFormat = c.LogFormat
+	if logFormat == "" {
+		logFormat = logFormatDefault
 	}
 
 	makeDirP(logPath)
-	logContent := getPsInfo()
+	logContent := getPsInfo(logFormat)
 
 	during := c.Interval
 	if during == 0 {
 		during = 5000
 	}
-	timer(during, logPath, logContent + "\n")
+	timer(during, logPath, logContent)
 }
 
-func getPsInfo() string {
+func getPsInfo(formatStr string) string {
 	v, _ := mem.VirtualMemory()
     c, _ := cpu.Info()
 	// d, _ := disk.Usage("/")
-    // n, _ := host.Info()
     nv, _ := net.IOCounters(false)
-    // boottime, _ := host.BootTime()
-    // btime := time.Unix(int64(boottime), 0).Format("2006-01-02 15:04:05")
-
 	var mbNum uint64 = 1024 * 1024
-
-	fmt.Printf("        Mem       : %v MB  Free: %v MB Used:%vMB Usage:%f%%\n", v.Total/mbNum, v.Available/mbNum, v.Used/mbNum, v.UsedPercent)
-	
+	// var cpuModel []string
 	for _, sub_cpu := range c {
 		modelname := sub_cpu.ModelName
 		// cores := sub_cpu.Cores
 		fmt.Printf("        CPU       : %v\n", modelname)
+		// cpuModel = append(cpuModel, modelname)
 	}
 	count1, _ := cpu.Counts(true)
 	count2, _ := cpu.Counts(false)
 	per1, _ := cpu.Percent(time.Second, true)
 	per2, _ := cpu.Percent(time.Second, false)
-	fmt.Println("       CPU", count1, count2, per1, per2) // 虚拟核：8，物理核：4 使用率：[30.693069306930692 0 19.801980198019802 0 8 0 5.9405940594059405 0] 总使用率：[10.099750623441397]
+	fmt.Println("       CPU", count1, count2, per1, per2, nv) // 逻辑核：8，物理核：4 使用率：[30.693069306930692 0 19.801980198019802 0 8 0 5.9405940594059405 0] 总使用率：[10.099750623441397]
 	diskInfo, _ := disk.Partitions(true)
 
 	for _, v := range diskInfo {
 		device := v.Mountpoint
 		distDetial, _ := disk.Usage(device)
 		if distDetial != nil {
-			rs, _ := fmt.Printf("   %v     HD        : %v MB  Free: %v MB Usage:%f%%\n",v.Device, distDetial.Total/1024/1024, distDetial.Free/1024/1024, distDetial.UsedPercent)
-			fmt.Println("~~~~", rs)
+			fmt.Printf("   %v     HD        : %v MB  Free: %v MB Usage:%f%%\n",v.Device, distDetial.Total/mbNum, distDetial.Free/mbNum, distDetial.UsedPercent)
 		}
 	}
 
-	// 逻辑核            logical cores
-	// 物理核            physical cores
-	// 单cpu使用率        percent percpu
-	// cpu综合使用率      cpu percent
-	// cpu型号           cpu model name
-	// 总内存 			 mem total
-	// 已使用内容 		  mem used
-	// 内存使用率 		  mem used percent
-	// 网卡上行速率       bytes recv
-	// 网卡下行速率       bytes sent
-	// 磁盘总空间         disk totle
-	// 磁盘已使用空间     disk used
-	// 磁盘使用占比       disk used percent
+	// |占位符|含义|
+	// |--|--|
+	// |$logical_cores|逻辑核数|
+	// |$physical_cores|物理核数|
+	// |$percent_percpu|单cpu使用率|
+	// |$cpu_percent|cpu综合使用率|
+	// |$cpu_model_name|cpu型号|
+	// |$mem_total|总内存|
+	// |$mem_used|已使用内存|
+	// |$mem_used_percent|内存使用率|
+	// |$bytes_recv|网卡下行速率|
+	// |$bytes_sent|网卡上行速率|
+	// |$disk_totle|磁盘总空间|
+	// |$disk_used|磁盘已使用空间|
+	// |$disk_used_percent|磁盘使用占比|
 
+	logicalCoresStr := strings.Replace(formatStr, "$logicalCores", strconv.Itoa(count1), -1)
+	physicalCoresStr := strings.Replace(logicalCoresStr, "$physicalCores", strconv.Itoa(count2), -1)
+	percentPerCpuStr := strings.Replace(physicalCoresStr, "$percentPerCpu", fmt.Sprintf("%f", per1), -1)
+	cpuPercentStr := strings.Replace(percentPerCpuStr, "$cpuPercent", fmt.Sprintf("%f", per2), -1)
+	cpuModelStr := strings.Replace(cpuPercentStr, "$cpuModel", "", -1)
+	memTotalStr := strings.Replace(cpuModelStr, "$memTotal", fmt.Sprintf("%d", v.Total/mbNum), -1)
+	memUsedStr := strings.Replace(memTotalStr, "$memUsed", fmt.Sprintf("%d", v.Used/mbNum), -1)
+	memUsedPercentStr := strings.Replace(memUsedStr, "$memUsedPercent", fmt.Sprintf("%f", v.UsedPercent), -1)
+	bytesRecvStr := strings.Replace(memUsedPercentStr, "$bytesRecv", "", -1)
+	bytesSentStr := strings.Replace(bytesRecvStr, "$bytesSent", "", -1)
+	diskTotleStr := strings.Replace(bytesSentStr, "$diskTotle", "", -1)
+	diskUsedStr := strings.Replace(diskTotleStr, "$diskUsed", "", -1)
+	rsStr := strings.Replace(diskUsedStr, "$diskUsedPercent", "", -1)
 
-
-	fmt.Println(nv)
-	// fmt.Println(disk.Partitions(true))
-    // fmt.Printf("        Network: %v bytes / %v bytes\n", nv[0].BytesRecv, nv[0].BytesSent)
-    // fmt.Printf("        SystemBoot:%v\n", btime)
-    // fmt.Printf("        CPU Used    : used %f%% \n", cc[0])
-    // fmt.Printf("        HD        : %v GB  Free: %v GB Usage:%f%%\n", d)
-    // fmt.Printf("        OS        : %v(%v)   %v  \n", n.Platform, n.PlatformFamily, n.PlatformVersion)
-	// fmt.Printf("        Hostname  : %v  \n", n)
-	// fmt.Println(c)
-
-	return `"$remote" "$cpu"`
+	return rsStr + "\n"
 }
 
 func errHandler(err error) {

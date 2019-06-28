@@ -1,6 +1,6 @@
 {
     "name": "test_server",
     "interval": 2000,
-    "format": "$cpu $disk $mem $net",
+    "logFormat": "$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotle|$diskUsed|$diskUsedPercent",
     "logPath": "/Users/liuquanyou/Downloads/git/topinfo/test1234.txt"
 }
