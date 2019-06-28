@@ -28,7 +28,7 @@ var (
     fmtLog = logFormatDefault
     mbNum = uint64(1024 * 1024)
     timeFormat = "2006-01-02T15:04:05"
-    during = 1000
+    during = 60000
     recv float32
     sent float32
 )
