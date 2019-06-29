@@ -24,7 +24,7 @@ type config struct {
 }
 
 var (
-	logFormatDefault = "$dateTime|$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotle|$diskUsed|$diskUsedPercent"
+	logFormatDefault = "$dateTime|$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotal|$diskUsed|$diskUsedPercent"
 	fmtLog           = logFormatDefault
 	mbNum            = uint64(1024 * 1024)
 	timeFormat       = "2006-01-02T15:04:05"
@@ -86,7 +86,7 @@ func main() {
 // |$mem_used_percent|内存使用率|
 // |$bytes_recv|网卡下行速率|
 // |$bytes_sent|网卡上行速率|
-// |$disk_totle|磁盘总空间|
+// |$disk_total|磁盘总空间|
 // |$disk_used|磁盘已使用空间|
 // |$disk_used_percent|磁盘使用占比|
 
@@ -144,7 +144,7 @@ func getPsInfo(interval int) string {
 	// nw.BytesSent
 
 	diskUsedPercent := float32(diskUsed) / float32(diskTotal)
-	tmpLog := strings.Replace(fmtLog, "$diskTotle", fmt.Sprintf("%dGB", diskTotal/mbNum/1024), -1)
+	tmpLog := strings.Replace(fmtLog, "$diskTotal", fmt.Sprintf("%dGB", diskTotal/mbNum/1024), -1)
 	tmpLog = strings.Replace(tmpLog, "$diskUsedPercent", fmt.Sprintf("%.2f", diskUsedPercent*100), -1)
 	tmpLog = strings.Replace(tmpLog, "$diskUsed", fmt.Sprintf("%dGB", diskUsed/mbNum/1024), -1)
 	tmpLog = strings.Replace(tmpLog, "$memUsedPercent", fmt.Sprintf("%.2f", v.UsedPercent), -1)
