@@ -1,5 +1,5 @@
 {
-    "interval": 2000,
-    "logFormat": "$cpuPercent ~~~ $memUsedPercent",
+    "interval": 3000,
+    "logFormat": "$dateTime ~~~ $cpuPercent ~~~ $memUsedPercent",
     "logPath": "./test_logs.txt"
 }

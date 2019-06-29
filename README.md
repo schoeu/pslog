@@ -23,15 +23,14 @@ chmod +x ./pslog_mac
 nohup ./pslog_mac &
 ```
 
-如果指定配置文件：
+### 3. 配置
+
+方法一：指定配置文件
 ```
 ./pslog_mac --path ./path_to_your_config_file
 ```
 
-其他系统均有对应方法。
-
-## 配置
-配置文件可以自定义输出的日志格式，日志路径，输出时间间隔。配置非必须。
+配置文件可以自定义输出的日志格式，日志路径，输出时间间隔。配置文件非必须。
 ``` json
 {
     "interval": 60000,
@@ -40,7 +39,15 @@ nohup ./pslog_mac &
 }
 ```
 
-其中：
+或
+
+方法二：命令行参数
+
+```
+./pslog_mac --logFormat '$dateTime' --logPath './ps_logs' --interval 60000
+```
+
+配置文件与命令行参数含义相同，其中：
 
 - `interval`为输出日志间隔，非必须，默认值为`60000`（60秒）
 - `logPath`为日志输出路径，非必须，默认值为`./psinfo_logs`，则会自动生成对应目录及文件，并写入日志

@@ -34,8 +34,13 @@ var (
 )
 
 func main() {
-	var filePath, logPath string
-	flag.StringVar(&filePath, "path", "", "path of config file.")
+	var filePath, logPath, formatStr, dist string
+	var interval int
+
+	flag.StringVar(&filePath, "path", "", "configuration file path.")
+	flag.StringVar(&formatStr, "logFormat", logFormatDefault, "log format string.")
+	flag.StringVar(&dist, "logPath", path.Join(getCwd(), "psinfo_logs"), "log file path.")
+	flag.IntVar(&interval, "interval", during, "interval timer")
 	flag.Parse()
 
 	c := config{}
@@ -47,23 +52,25 @@ func main() {
 		if configLogPath != "" {
 			logPath = configLogPath
 		}
+
+		logFormat := c.LogFormat
+		if logFormat != "" {
+			fmtLog = logFormat
+		}
+
+		if c.Interval != 0 {
+			during = c.Interval
+		}
 	} else {
-		cwd := getCwd()
-		logPath = path.Join(cwd, "psinfo_logs")
-		fmt.Println("Log file created at: ", logPath)
+		logPath = dist
+		fmtLog = formatStr
+		during = interval
 	}
 
-	logFormat := c.LogFormat
-	if logFormat != "" {
-		fmtLog = logFormat
-	}
+	fmt.Println("Log file created at: ", logPath)
 
 	makeDirP(logPath)
 	normalInfo()
-
-	if c.Interval != 0 {
-		during = c.Interval
-	}
 
 	timer(during, logPath)
 }
@@ -167,8 +174,7 @@ func getCwd() string {
 
 func makeDirP(p string) {
 	if !path.IsAbs(p) {
-		cwd := getCwd()
-		p = path.Join(cwd, p)
+		p = path.Join(getCwd(), p)
 	}
 	rs := path.Dir(p)
 	os.MkdirAll(rs, os.ModePerm)
