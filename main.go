@@ -97,8 +97,8 @@ func normalInfo() {
 	physicalCount, _ := cpu.Counts(false)
 
 	var cpuModel []string
-	for _, sub_cpu := range c {
-		cpuModel = append(cpuModel, fmt.Sprintf(`"%s"`, sub_cpu.ModelName))
+	for _, subCpu := range c {
+		cpuModel = append(cpuModel, fmt.Sprintf(`"%s"`, subCpu.ModelName))
 	}
 
 	fmtLog = strings.Replace(fmtLog, "$memTotal", fmt.Sprintf("%dMB", v.Total/mbNum), -1)
