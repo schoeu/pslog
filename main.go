@@ -36,10 +36,11 @@ var (
 func main() {
 	var filePath, logPath, formatStr, dist string
 	var interval int
+	homeDir, _ := os.UserHomeDir()
 
 	flag.StringVar(&filePath, "path", "", "configuration file path.")
 	flag.StringVar(&formatStr, "logFormat", logFormatDefault, "log format string.")
-	flag.StringVar(&dist, "logPath", path.Join(getCwd(), "psinfo_logs"), "log file path.")
+	flag.StringVar(&dist, "logPath", path.Join(homeDir, ".psinfo.log"), "log file path.")
 	flag.IntVar(&interval, "interval", during, "interval timer")
 	flag.Parse()
 

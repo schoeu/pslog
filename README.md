@@ -35,7 +35,7 @@ nohup ./pslog_mac &
 {
     "interval": 60000,
     "logFormat": "$dateTime|$cpuPercent",
-    "logPath": "./psinfo_logs"
+    "logPath": "~/.psinfo.log"
 }
 ```
 
@@ -50,7 +50,7 @@ nohup ./pslog_mac &
 配置文件与命令行参数含义相同，其中：
 
 - `interval`为输出日志间隔，非必须，默认值为`60000`（60秒）
-- `logPath`为日志输出路径，非必须，默认值为`./psinfo_logs`，则会自动生成对应目录及文件，并写入日志
+- `logPath`为日志输出路径，非必须，默认值为`~/.psinfo.log`，则会自动生成对应目录及文件，并写入日志
 - `logFormat`为输出的日志格式，非必须，默认值为`"$dateTime|$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotal|$diskUsed|$diskUsedPercent"`。
 
 用户可以使用其中任意字段自行拼接。比如需要内存使用率，cpu使用率，且想以`^`间隔，则该格式字符串为`$cpuPercent^$memUsedPercent`，生效后，日志中单行内容为`16.69^74.65`，代表cpu，内存使用率分别为`16.69%`，`74.65%`。
