@@ -75,6 +75,8 @@ nohup ./pslog_mac &
 |$diskUsed|磁盘已使用空间|159GB|已使用159GB|
 |$diskUsedPercent|磁盘使用占比|34.20|磁盘使用了34.20%|
 
+**重要**：如果配合`pslog_agent`日志上报服务使用，则`logFormat`与`logPath`保持默认即可。
+
 ## MIT License
 
 Copyright (c) 2019 Schoeu
