@@ -13,6 +13,7 @@ import (
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/net"
 )
@@ -24,7 +25,7 @@ type config struct {
 }
 
 var (
-	logFormatDefault = "$dateTime|$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotal|$diskUsed|$diskUsedPercent"
+	logFormatDefault = "$dateTime|$logicalCores|$physicalCores|$percentPerCpu|$cpuPercent|$cpuModel|$memTotal|$memUsed|$memUsedPercent|$bytesRecv|$bytesSent|$diskTotal|$diskUsed|$diskUsedPercent|$load"
 	fmtLog           = logFormatDefault
 	mbNum            = uint64(1024 * 1024)
 	timeFormat       = "2006-01-02T15:04:05"
@@ -90,6 +91,7 @@ func main() {
 // |$disk_total|磁盘总空间|
 // |$disk_used|磁盘已使用空间|
 // |$disk_used_percent|磁盘使用占比|
+// |$load|负载|
 
 func normalInfo() {
 	v, _ := mem.VirtualMemory()
@@ -113,6 +115,7 @@ func getPsInfo(interval int) string {
 	percentPerCpu, _ := cpu.Percent(time.Second, true)
 	cpuPercent, _ := cpu.Percent(time.Second, false)
 	diskInfo, _ := disk.Partitions(true)
+	loadAvg, _ := load.Avg()
 	var diskTotal, diskUsed uint64
 	for _, v := range diskInfo {
 		device := v.Mountpoint
@@ -144,19 +147,31 @@ func getPsInfo(interval int) string {
 	// recvRate := nw.BytesRecv / mbNum / interval / 1000
 	// nw.BytesSent
 
-	diskUsedPercent := float32(diskUsed) / float32(diskTotal)
+	diskUsedPercent := float64(diskUsed) / float64(diskTotal)
 	tmpLog := strings.Replace(fmtLog, "$diskTotal", fmt.Sprintf("%dGB", diskTotal/mbNum/1024), -1)
-	tmpLog = strings.Replace(tmpLog, "$diskUsedPercent", fmt.Sprintf("%.2f", diskUsedPercent*100), -1)
+	tmpLog = strings.Replace(tmpLog, "$diskUsedPercent", parseFloatNum(diskUsedPercent*100), -1)
 	tmpLog = strings.Replace(tmpLog, "$diskUsed", fmt.Sprintf("%dGB", diskUsed/mbNum/1024), -1)
-	tmpLog = strings.Replace(tmpLog, "$memUsedPercent", fmt.Sprintf("%.2f", v.UsedPercent), -1)
+	tmpLog = strings.Replace(tmpLog, "$memUsedPercent", parseFloatNum(v.UsedPercent), -1)
 	tmpLog = strings.Replace(tmpLog, "$memUsed", fmt.Sprintf("%.2fMB", float32(v.Used)/float32(mbNum)), -1)
 	tmpLog = strings.Replace(tmpLog, "$percentPerCpu", fmt.Sprintf("%.2f", percentPerCpu), -1)
-	tmpLog = strings.Replace(tmpLog, "$cpuPercent", fmt.Sprintf("%.2f", cpuPercent[0]), -1)
+	tmpLog = strings.Replace(tmpLog, "$cpuPercent", parseFloatNum(cpuPercent[0]), -1)
 	tmpLog = strings.Replace(tmpLog, "$bytesRecv", fmt.Sprintf("%.2fKB/s", recvRate), -1)
 	tmpLog = strings.Replace(tmpLog, "$bytesSent", fmt.Sprintf("%.2fKB/s", sentRate), -1)
 	tmpLog = strings.Replace(tmpLog, "$dateTime", time.Now().Format(timeFormat), -1)
 
+	loadStat := []string{
+		parseFloatNum(loadAvg.Load1),
+		parseFloatNum(loadAvg.Load5),
+		parseFloatNum(loadAvg.Load15),
+	}
+
+	tmpLog = strings.Replace(tmpLog, "$load", strings.Join(loadStat, ","), -1)
+
 	return tmpLog + "\n"
+}
+
+func parseFloatNum(n float64) string {
+	return fmt.Sprintf("%.2f", n)
 }
 
 func errHandler(err error) {

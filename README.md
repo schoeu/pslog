@@ -74,6 +74,7 @@ nohup ./pslog_mac &
 |$diskTotal|磁盘总空间|467GB|磁盘总计467G，不包括隐藏分区|
 |$diskUsed|磁盘已使用空间|159GB|已使用159GB|
 |$diskUsedPercent|磁盘使用占比|34.20|磁盘使用了34.20%|
+|$load|负载|1.56,1.72,1.88|分别代表1分钟，5分钟，15分钟的系统负载|
 
 **重要**：如果配合`pslog_agent`日志上报服务使用，则`logFormat`与`logPath`保持默认即可。
 
