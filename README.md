@@ -69,12 +69,16 @@ nohup ./pslog_mac &
 |$memTotal|总内存|8192MB|8GB，此处以MB来展现|
 |$memUsed|已使用内存|5516.53MB|已使用了5516.53MB|
 |$memUsedPercent|内存使用率|67.34|已使用占比67.34%|
-|$bytesRecv|网卡下行速率|4.00KB/s|下行速率|
-|$bytesSent|网卡上行速率|1.50KB/s|上行速率|
+|$recvRate|网卡下行速率|4.00KB/s|下行速率|
+|$sentRate|网卡上行速率|1.50KB/s|上行速率|
 |$diskTotal|磁盘总空间|467GB|磁盘总计467G，不包括隐藏分区|
 |$diskUsed|磁盘已使用空间|159GB|已使用159GB|
 |$diskUsedPercent|磁盘使用占比|34.20|磁盘使用了34.20%|
 |$load|负载|1.56,1.72,1.88|分别代表1分钟，5分钟，15分钟的系统负载|
+|os|系统类型|darwin||
+|platform|系统所属平台|darwin|
+|platformFamily|系统平台分类| Standalone Workstation|
+|platformVersion|系统版本|10.14.5|
 
 **重要**：如果配合`pslog_agent`日志上报服务使用，则`logFormat`与`logPath`保持默认即可。
 
